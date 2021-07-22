@@ -1,8 +1,9 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain} from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+var fs = require('fs');
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Scheme must be registered before the app is ready
@@ -16,11 +17,10 @@ async function createWindow() {
     width: 1300,
     height: 900,
     webPreferences: {
-      
-      // Use pluginOptions.nodeIntegration, leave this alone
-      // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-      nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
-      contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION
+      nodeIntegration: true,
+      enableRemoteModule: true,
+      nodeIntegrationInWorker: true,
+      contextIsolation: false
     }
   })
 
@@ -79,3 +79,24 @@ if (isDevelopment) {
     })
   }
 }
+
+ipcMain.on('writeFile', (event, arg) => {
+  try { 
+    fs.writeFileSync('./file.txt', arg, 'utf-8');   
+    event.returnValue = true
+  } catch(e) {
+    alert('Failed to save the file !', e);
+    event.returnValue = false
+  }
+})
+
+ipcMain.on('readFile', (event, arg) => {
+  fs.readFile('./file.txt', 'utf8', function (err,data) {
+    if (err) {
+      alert('Failed to read the file !', err);
+      event.returnValue = false
+    }
+    event.returnValue = data
+  });
+ 
+})

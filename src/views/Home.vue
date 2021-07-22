@@ -1,19 +1,34 @@
 <template>
   <div class="home">
     <div class="actions">
-        <div class="action"> Dosyayı Oku</div>
-        <div class="action"> Dosyayı Güncelle</div>
+        <div class="action" @click="readFile"> Dosyayı Oku</div>
+        <div class="action" @click="writeFile"> Dosyayı Güncelle</div>
     </div>
     <div class="text">
-      <textarea placeholder="içerik"></textarea>
+      <textarea placeholder="içerik" v-model="desc"></textarea>
     </div>
   </div>
 </template>
 
 <script>
+import { ipcRenderer } from 'electron'
 
 export default {
   name: 'Home',
+  data: function(){
+    return{
+      desc: ""
+    }
+  },
+  methods:{
+    readFile: function(){
+      this.desc = ipcRenderer.sendSync('readFile')
+    },
+    writeFile: function(){
+      let res = ipcRenderer.sendSync('writeFile', this.desc)
+      res ? alert('dosya başarı ile kaydedildi') : alert('dosya yazma işlemi başarısız')
+    }
+  }
 }
 </script>
 <style scoped>
